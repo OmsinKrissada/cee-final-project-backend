@@ -1,0 +1,9 @@
+{
+	"watch": [
+		"src",
+		".env"
+	],
+	"ext": "ts",
+	"exec": "node -r @swc-node/register --enable-source-maps src/main.ts",
+	"signal": "SIGINT"
+}
