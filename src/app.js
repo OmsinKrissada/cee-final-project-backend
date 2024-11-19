@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 
 import AuthRoute from "./routes/authRoute.js";
+import PlayerRoute from "./routes/playerRoute.js";
 
 const app = express();
 
@@ -14,5 +15,6 @@ app.use(cors());
 
 // use routes
 app.use("/auth", AuthRoute);
+app.use("/player", PlayerRoute);
 
 export default app;
