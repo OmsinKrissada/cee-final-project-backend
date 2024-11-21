@@ -2,7 +2,9 @@ import Session from '../models/sessionModel.js';
 import { generateToken } from '../utils.js';
 
 export const authMiddleware = async (req, res, next) => {
-	const token = req.header('Authorization').substring('Bearer '.length);
+	const token = req.header('Authorization')?.substring('Bearer '.length);
+
+	if (!token) return res.status(403).json({ error: 'must supply authorization token' });
 
 	const session = await Session.findOne({ token });
 	if (!session) {
