@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
 
 const playerSchema = new mongoose.Schema({
-  fullname: {
+  nickname: {
     type: String,
     required: true,
   },
-  nickname: {
+  discordId: {
     type: String,
     required: false,
   },

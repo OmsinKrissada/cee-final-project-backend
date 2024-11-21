@@ -1,3 +1,4 @@
+import Player from '../models/playerModel.js';
 import Session from '../models/sessionModel.js';
 import { generateToken } from '../utils.js';
 
@@ -53,9 +54,23 @@ export const handleOAuthLogin = async (req, res) => {
 
 	const generatedToken = generateToken();
 
-	// TODO: scaffold user data, replace user.id with mongo's id from player document
+	let player = await Player.findOne({ discordId: user.id });
+	if (!player) {
+		player = await Player.create({
+			discordId: user.id,
+			nickname: nickname,
+			highest_score: 0,
+			times_played: 0,
+			total_score: 0,
+		});
+	}
 
-	await Session.create({ userId: user.id, token: generatedToken, type: 'discord', createdAt: new Date() });
+	await Session.create({
+		userId: player.id,
+		token: generatedToken,
+		type: 'discord',
+		createdAt: new Date()
+	});
 
 
 	res.json({ token: generatedToken });
