@@ -4,7 +4,8 @@ import * as authController from "../controllers/authController.js";
 
 const router = express.Router();
 
-router.get("/redirect", authController.handleOAuthRedirect);
+router.post("/login/discord", authController.handleOAuthLogin);
+router.post("/login/guest", authController.handleGuestLogin);
 // router.get("/logout", authController.logout);
 
 export default router;

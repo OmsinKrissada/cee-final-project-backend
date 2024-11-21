@@ -5,10 +5,19 @@ const sessionSchema = new mongoose.Schema({
 		type: String,
 		required: true,
 	},
-	cookie: {
+	token: {
 		type: String,
 		required: true,
-	}
+	},
+	type: {
+		type: String,
+		enum: ['discord', 'guest'],
+		required: true,
+	},
+	createdAt: {
+		type: Date,
+		required: true,
+	},
 });
 
 const Session = mongoose.model("Session", sessionSchema);

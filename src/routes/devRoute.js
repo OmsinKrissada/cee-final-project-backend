@@ -9,7 +9,7 @@ router.get("/word/random", (req, res) => {
 });
 
 router.get("/word/:length", (req, res) => {
-    const filtered = words.filter(w => w.length == req.params.length)
+	const filtered = words.filter(w => w.length == req.params.length);
 	res.json(filtered[Math.floor(Math.random() * filtered.length)]);
 });
 
