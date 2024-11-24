@@ -1,15 +1,15 @@
 import Player from '../models/playerModel.js';
 import Session from '../models/sessionModel.js';
-import { generateToken } from '../utils.js';
+import { generateToken, randomUsername } from '../utils.js';
 
 export const authMiddleware = async (req, res, next) => {
 	const token = req.header('Authorization')?.substring('Bearer '.length);
 
-	if (!token) return res.status(403).json({ error: 'must supply authorization token' });
+	if (!token) return res.status(401).json({ error: 'must supply authorization token' });
 
 	const session = await Session.findOne({ token });
 	if (!session) {
-		return res.status(404).json({ error: 'user not found' });
+		return res.status(403).json({ error: 'invalid session token' });
 	}
 
 	const { userId } = session;
@@ -77,5 +77,22 @@ export const handleOAuthLogin = async (req, res) => {
 };
 
 export const handleGuestLogin = async (req, res) => {
+	const player = await Player.create({
+		nickname: randomUsername(),
+		highest_score: 0,
+		times_played: 0,
+		total_score: 0,
+	});
 
+	const generatedToken = generateToken();
+
+	await Session.create({
+		userId: player.id,
+		token: generatedToken,
+		type: 'guest',
+		createdAt: new Date()
+	});
+
+
+	res.json({ token: generatedToken });
 };
