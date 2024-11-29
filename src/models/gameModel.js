@@ -3,11 +3,11 @@ import mongoose from "mongoose";
 const gameSchema = new mongoose.Schema({
 	start_timestamp: {
 		type: Date,
-		required: true,
+		required: false,
 	},
 	end_timestamp: {
 		type: Date,
-		required: true,
+		required: false,
 	},
 
 	status: {
@@ -29,16 +29,16 @@ const gameSchema = new mongoose.Schema({
 	// time spent in seconds
 	time_spent: {
 		type: Number,
-		required: true,
+		required: false,
 	},
 
 	words_success: {
 		type: [String],
-		required: true,
+		required: false,
 	},
 	words_missed: {
 		type: [String],
-		required: true,
+		required: false,
 	},
 });
 
