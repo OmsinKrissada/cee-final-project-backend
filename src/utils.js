@@ -1,7 +1,16 @@
+/**
+ * @template T
+ * @param {T[]} items 
+ * @returns {T}
+ */
+export function uniformRandom(items) {
+	return items[Math.floor(Math.random() * items.length)];
+}
+
 export function randomString(length, characters = "ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz0123456789") {
 	let str = '';
 	for (let i = 0; i < length; i++)
-		str += characters[Math.floor(Math.random() * characters.length)];
+		str += characters[Math.floor(Math.random() * characters.length)]; // TODO: should i utilize uniformRandom? too many call stack? idk
 	return str;
 }
 
