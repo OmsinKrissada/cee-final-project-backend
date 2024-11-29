@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const playerSchema = new mongoose.Schema({
+const gameSchema = new mongoose.Schema({
 	start_timestamp: {
 		type: Date,
 		required: true,
@@ -10,8 +10,19 @@ const playerSchema = new mongoose.Schema({
 		required: true,
 	},
 
+	status: {
+		type: String,
+		enum: ['waiting', 'ongoing', 'ended'],
+		required: true,
+	},
+
+	owner: {
+		type: String, // player id
+		required: true,
+	},
+
 	players: {
-		type: [Player],
+		type: [{ id: String, score: Number }],
 		required: true,
 	},
 
@@ -31,6 +42,6 @@ const playerSchema = new mongoose.Schema({
 	},
 });
 
-const Player = mongoose.model("Player", playerSchema);
+const Game = mongoose.model("Game", gameSchema);
 
-export default Player;
+export default Game;
