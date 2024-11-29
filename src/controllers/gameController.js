@@ -1,5 +1,4 @@
 import Game from "../models/gameModel.js";
-import Player from "../models/playerModel.js";
 import { uniformRandom as uniform } from "../utils.js";
 
 async function getGames(includeEnded) {
@@ -33,6 +32,7 @@ async function getGames(includeEnded) {
 					time_spent: { $first: "$time_spent" },
 					words_success: { $first: "$words_success" },
 					words_missed: { $first: "$words_missed" },
+					owner: { $first: "$owner" },
 					players: {
 						$push: {
 							id: "$players.id",
@@ -78,6 +78,7 @@ async function getGames(includeEnded) {
 				time_spent: { $first: "$time_spent" },
 				words_success: { $first: "$words_success" },
 				words_missed: { $first: "$words_missed" },
+				owner: { $first: "$owner" },
 				players: {
 					$push: {
 						id: "$players.id",
