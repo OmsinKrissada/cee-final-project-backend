@@ -4,14 +4,90 @@ import { uniformRandom as uniform } from "../utils.js";
 
 async function getGames(includeEnded) {
 	if (includeEnded) {
-		return await Game.find();
+		return await Game.aggregate([
+			{
+				$unwind: "$players",
+			},
+			{
+				$addFields: {
+					convertedPlayerId: { $toObjectId: "$players.id" } // needed to do this cuz i store player id as string
+				}
+			},
+			{
+				$lookup: {
+					from: "players",
+					localField: "convertedPlayerId",
+					foreignField: "_id",
+					as: "playerDetails",
+				},
+			},
+			{
+				$unwind: "$playerDetails",
+			},
+			{
+				$group: {
+					_id: "$_id",
+					start_timestamp: { $first: "$start_timestamp" },
+					end_timestamp: { $first: "$end_timestamp" },
+					status: { $first: "$status" },
+					time_spent: { $first: "$time_spent" },
+					words_success: { $first: "$words_success" },
+					words_missed: { $first: "$words_missed" },
+					players: {
+						$push: {
+							id: "$players.id",
+							score: "$players.score",
+							nickname: "$playerDetails.nickname",
+						},
+					},
+				},
+			},
+		]);
 	}
-	return await Game.find({
-		$or: [
-			{ status: 'waiting' },
-			{ status: 'ongoing' }
-		],
-	});
+	return await Game.aggregate([
+		{
+			$match: {
+				status: { $in: ['waiting', 'ongoing'] },
+			},
+		},
+		{
+			$unwind: "$players",
+		},
+		{
+			$addFields: {
+				convertedPlayerId: { $toObjectId: "$players.id" } // needed to do this cuz i store player id as string
+			}
+		},
+		{
+			$lookup: {
+				from: "players",
+				localField: "convertedPlayerId",
+				foreignField: "_id",
+				as: "playerDetails",
+			},
+		},
+		{
+			$unwind: "$playerDetails",
+		},
+		{
+			$group: {
+				_id: "$_id",
+				start_timestamp: { $first: "$start_timestamp" },
+				end_timestamp: { $first: "$end_timestamp" },
+				status: { $first: "$status" },
+				time_spent: { $first: "$time_spent" },
+				words_success: { $first: "$words_success" },
+				words_missed: { $first: "$words_missed" },
+				players: {
+					$push: {
+						id: "$players.id",
+						score: "$players.score",
+						nickname: "$playerDetails.nickname",
+					},
+				},
+			},
+		},
+	]);
 }
 
 export const listGames = async (req, res) => {
@@ -48,7 +124,7 @@ export const createGame = async (req, res) => {
 		owner: userId,
 	});
 
-	return res.json(await getGames());
+	return res.status(201).json(await getGames());
 };
 
 export const joinGame = async (req, res) => {
