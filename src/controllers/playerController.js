@@ -17,6 +17,11 @@ export const setNickname = async (req, res) => {
 };
 
 export const getInfo = async (req, res) => {
-	let userId = req.userId;
-	console.log('your info here');
+	// probably won't be used
+	const userId = req.userId;
+	const player = await Player.findById(userId);
+	return res.json({
+		userId: player.id,
+		nickname: player.nickname
+	});
 };
