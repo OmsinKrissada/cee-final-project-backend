@@ -168,11 +168,17 @@ export const leaveGame = async (req, res) => {
 
 	game.players.remove({ id: userId });
 	// assign a new random owner
+	let deleted = false;
 	if (game.owner == userId) {
-		game.owner = uniform(game.players.filter(p => p._id != userId)).id;
+		const remainingPlayers = game.players.filter(p => p.id != userId);
+		if (remainingPlayers.length > 0) { game.owner = uniform(game.players.filter(p => p.id != userId)).id; }
+		else {
+			await game.deleteOne();
+			deleted = true;
+		}
 	}
 
-	await game.save();
+	if (!deleted) await game.save();
 
 	return res.json(await getGames());
 };
