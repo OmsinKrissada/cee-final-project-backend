@@ -24,3 +24,5 @@ export function randomUsername() {
 	name += Math.floor(Math.random() * 100000);
 	return name;
 }
+
+export const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
