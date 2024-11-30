@@ -13,4 +13,6 @@ router.put("/join/:id", authMiddleware, gameController.joinGame);
 router.put("/leave/:id", authMiddleware, gameController.leaveGame);
 router.put("/start/:id", authMiddleware, gameController.startGame);
 
+router.get('/stream/lobby', gameController.lobbyStream);
+
 export default router;

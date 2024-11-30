@@ -128,7 +128,8 @@ export const createGame = async (req, res) => {
 		owner: userId,
 	});
 
-	return res.status(201).json(await getGames());
+	res.status(201).json(await getGames());
+	await announceLobbyUpdate();
 };
 
 export const joinGame = async (req, res) => {
@@ -153,7 +154,8 @@ export const joinGame = async (req, res) => {
 	const player = { id: userId, score: 0 };
 	await Game.updateOne({ _id: gameId }, { $push: { players: player } });
 
-	return res.json(await getGames());
+	res.json(await getGames());
+	await announceLobbyUpdate();
 };
 
 export const leaveGame = async (req, res) => {
@@ -180,7 +182,8 @@ export const leaveGame = async (req, res) => {
 
 	if (!deleted) await game.save();
 
-	return res.json(await getGames());
+	res.json(await getGames());
+	await announceLobbyUpdate();
 };
 
 export const startGame = async (req, res) => {
@@ -199,5 +202,44 @@ export const startGame = async (req, res) => {
 	game.status = 'ongoing';
 	await game.save();
 
-	return res.json(await getGames());
+	res.json(await getGames());
+	await announceLobbyUpdate();
+};
+
+// SSE
+
+/**
+ * @type {import("express").Response[]}
+ */
+const lobbyConnections = [];
+
+async function announceLobbyUpdate() {
+	const games = await getGames();
+	lobbyConnections.forEach((res => {
+		res.write(`event: update\ndata: ${JSON.stringify(games)}\n\n`);
+	}));
+}
+
+/**
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ */
+export const lobbyStream = (req, res) => {
+	const headers = {
+		"Content-Type": "text/event-stream",
+		"Connection": "keep-alive",
+		"Cache-Control": "no-cache",
+	};
+	res.writeHead(200, headers);
+
+	lobbyConnections.push(res);
+
+	req.on("close", () => {
+		const idx = lobbyConnections.indexOf(res);
+		if (idx >= 0) {
+			lobbyConnections.splice(idx, 1);
+		}
+
+		res.end();
+	});
 };
