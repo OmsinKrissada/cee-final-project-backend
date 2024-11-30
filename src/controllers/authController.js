@@ -73,7 +73,7 @@ export const handleOAuthLogin = async (req, res) => {
 	});
 
 
-	res.json({ token: generatedToken });
+	res.json({ token: generatedToken, userId: player.id });
 };
 
 export const handleGuestLogin = async (req, res) => {
@@ -94,5 +94,5 @@ export const handleGuestLogin = async (req, res) => {
 	});
 
 
-	res.json({ token: generatedToken });
+	res.json({ token: generatedToken, userId: player.id });
 };
