@@ -2,8 +2,9 @@ import Game from "../models/gameModel.js";
 import { uniformRandom as uniform } from "../utils.js";
 
 async function getGames(includeEnded) {
+	let game;
 	if (includeEnded) {
-		return await Game.aggregate([
+		game = await Game.aggregate([
 			{
 				$unwind: "$players",
 			},
@@ -44,7 +45,7 @@ async function getGames(includeEnded) {
 			},
 		]);
 	}
-	return await Game.aggregate([
+	game = await Game.aggregate([
 		{
 			$match: {
 				status: { $in: ['waiting', 'ongoing'] },
@@ -89,6 +90,8 @@ async function getGames(includeEnded) {
 			},
 		},
 	]);
+
+	return game.map(g => ({ ...g, id: g._id }));
 }
 
 export const listGames = async (req, res) => {
@@ -97,7 +100,7 @@ export const listGames = async (req, res) => {
 	// has both start and end time		= finished
 	// has start but not end time		= ongoing
 	// has neither start nor end time	= waiting
-	const games = await getGames(includeEnded);
+	const games = (await getGames(includeEnded));
 	// return res.json({ ...games, players: games });
 	return res.json(games);
 };
@@ -130,9 +133,9 @@ export const createGame = async (req, res) => {
 
 export const joinGame = async (req, res) => {
 	const userId = req.userId;
-	const gameId = req.path.id;
+	const gameId = req.params.id;
 
-	if (!gameId) return res.status(400).send('missing game id');
+	if (!gameId) return res.status(400).json({ error: 'missing game id' });
 
 	const existing = await Game.find({
 		$or: [
@@ -148,16 +151,16 @@ export const joinGame = async (req, res) => {
 
 	// join logic
 	const player = { id: userId, score: 0 };
-	await Game.updateOne({ id: gameId }, { $push: { players: player } });
+	await Game.updateOne({ _id: gameId }, { $push: { players: player } });
 
 	return res.json(await getGames());
 };
 
 export const leaveGame = async (req, res) => {
 	const userId = req.userId;
-	const gameId = req.path.id;
+	const gameId = req.params.id;
 
-	if (!gameId) return res.status(400).send('missing game id');
+	if (!gameId) return res.status(400).json({ error: 'missing game id' });
 
 	const game = await Game.findById(gameId);
 	if (!game) return res.status(404).json({ error: `game with id ${gameId} not found` });
@@ -166,8 +169,7 @@ export const leaveGame = async (req, res) => {
 	game.players.remove({ id: userId });
 	// assign a new random owner
 	if (game.owner == userId) {
-		// TODO: check actual behavior, is the player really removed from game.players before commit?
-		game.owner = uniform(game.players).id;
+		game.owner = uniform(game.players.filter(p => p._id != userId)).id;
 	}
 
 	await game.save();
@@ -177,9 +179,9 @@ export const leaveGame = async (req, res) => {
 
 export const startGame = async (req, res) => {
 	const userId = req.userId;
-	const gameId = req.path.id;
+	const gameId = req.params.id;
 
-	if (!gameId) return res.status(400).send('missing game id');
+	if (!gameId) return res.status(400).json({ error: 'missing game id' });
 
 	const game = await Game.findById(gameId);
 	if (!game) return res.status(404).json({ error: `game with id ${gameId} not found` });
