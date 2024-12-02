@@ -49,3 +49,11 @@ export async function start(id, playerIds) {
 	// await sleep(3000); // wait for player's connection
 	gi.start();
 }
+
+async function recover() {
+	const activeGames = await Game.find({ status: 'ongoing' });
+	activeGames.forEach(game => {
+		start(game.id, game.players.map(p => p.id));
+	});
+}
+recover();
