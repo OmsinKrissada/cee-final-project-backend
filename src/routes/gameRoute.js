@@ -15,4 +15,8 @@ router.put("/start/:id", authMiddleware, gameController.startGame);
 
 router.get('/stream/lobby', gameController.lobbyStream);
 
+router.get('/playtoken', authMiddleware, gameController.getPlayToken);
+router.get('/stream/play/:token', gameController.gameStream);
+router.post("/type/:word", authMiddleware, gameController.createGame);
+
 export default router;
