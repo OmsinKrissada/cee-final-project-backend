@@ -166,7 +166,7 @@ export const leaveGame = async (req, res) => {
 
 	const game = await Game.findById(gameId);
 	if (!game) return res.status(404).json({ error: `game with id ${gameId} not found` });
-	if (game.status != 'waiting') return res.status(403).json({ error: `cannot leave when game is already started` });
+	if (game.status == 'ended') return res.status(403).json({ error: `cannot leave ended game` });
 
 	game.players.remove({ id: userId });
 	// assign a new random owner
