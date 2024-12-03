@@ -4,6 +4,7 @@ import cors from "cors";
 import AuthRoute from "./routes/authRoute.js";
 import PlayerRoute from "./routes/playerRoute.js";
 import GameRoute from "./routes/gameRoute.js";
+import LeaderboardRoute from "./routes/leaderboardRoute.js";
 import DevRoute from "./routes/devRoute.js";
 
 const app = express();
@@ -19,6 +20,7 @@ app.use(cors());
 app.use("/auth", AuthRoute);
 app.use("/player", PlayerRoute);
 app.use("/game", GameRoute);
+app.use("/leaderboard", LeaderboardRoute);
 app.use("/dev", DevRoute);
 
 export default app;
