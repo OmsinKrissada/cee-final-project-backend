@@ -17,6 +17,7 @@ export function getRandomWord(length) {
 }
 
 
+/** @type {Map<string, GameInstance>} */
 const gameInstances = new Map();
 
 /** @type {{ userId: string, res: Response }[]} */
@@ -30,7 +31,7 @@ export const connectionPool = [];
 export function sendEvent(recipient, event, data) {
 	data = JSON.stringify(data);
 	connectionPool.forEach(c => {
-		// if (!recipient.includes(c.userId)) return;
+		if (!recipient.includes(c.userId)) return;
 		console.log(`event: ${event} data: ${data} --> ${c.userId}`);
 		c.res.write(`event: ${event}\ndata: ${data}\n\n`);
 	});
@@ -41,13 +42,29 @@ export function sendEvent(recipient, event, data) {
  * @param {string[]} playerIds 
  */
 export async function start(id, playerIds) {
-	const users = await Player.find({ id: { $in: playerIds } });
+	console.log(playerIds);
+	const users = await Player.find({ _id: { $in: playerIds } });
 
 	const gi = new GameInstance(id, users.map(p => ({ id: p.id, nickname: p.nickname })));
 	gameInstances.set(id, gi);
+	gi.onDestroy(() => {
+		gameInstances.delete(id);
+	});
 
 	// await sleep(3000); // wait for player's connection
 	gi.start();
+}
+
+/**
+ * @param {string} playerId 
+ * @param {string} word 
+ */
+export function submitWord(playerId, word) {
+	for (const [id, instance] of gameInstances) {
+		if (instance.players.has(playerId)) {
+			instance.handleSubmitWord(playerId, word);
+		}
+	}
 }
 
 async function recover() {

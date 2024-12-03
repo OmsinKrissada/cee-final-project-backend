@@ -303,3 +303,18 @@ export const gameStream = async (req, res) => {
 		res.end();
 	});
 };
+
+/**
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ */
+export const wordSubmit = async (req, res) => {
+	const userId = req.userId;
+
+	const word = req.params.word;
+	if (!word) return res.status(400).json({ error: 'missing word path param' });
+
+	gameManager.submitWord(userId, word);
+
+	res.status(201).json({});
+};
