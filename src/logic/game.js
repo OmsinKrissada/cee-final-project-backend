@@ -8,6 +8,7 @@ export class GameInstance {
 	started_at = null;
 	ended_at = null;
 
+	// total_time_ms = 1000 * 20;
 	total_time_ms = 1000 * 60 * 2;
 
 	constructor(id, players) {
@@ -82,6 +83,7 @@ export class GameInstance {
 			start_timestamp: this.started_at,
 			end_timestamp: new Date(),
 			status: 'ended',
+			players: Array.from(this.players).map(p => ({ id: p[0], score: p[1].score }))
 		});
 		console.log('updated to db');
 		this.callback();
