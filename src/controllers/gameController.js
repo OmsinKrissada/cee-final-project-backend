@@ -170,6 +170,12 @@ export const leaveGame = async (req, res) => {
 	if (game.status == 'ended') return res.status(403).json({ error: `cannot leave ended game` });
 
 	game.players.remove({ id: userId });
+	if (game.status == 'ongoing') {
+		const gi = gameManager.gameInstances.get(gameId);
+		if (gi) {
+			gi.players.delete(userId);
+		}
+	}
 	// assign a new random owner
 	let deleted = false;
 	if (game.owner == userId) {
@@ -185,6 +191,7 @@ export const leaveGame = async (req, res) => {
 
 	res.json(await getGames());
 	await announceLobbyUpdate();
+
 };
 
 export const startGame = async (req, res) => {
