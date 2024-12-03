@@ -18,7 +18,7 @@ export function getRandomWord(length) {
 
 
 /** @type {Map<string, GameInstance>} */
-const gameInstances = new Map();
+export const gameInstances = new Map();
 
 /** @type {{ userId: string, res: Response }[]} */
 export const connectionPool = [];
