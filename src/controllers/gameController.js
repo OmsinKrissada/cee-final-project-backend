@@ -139,24 +139,29 @@ export const joinGame = async (req, res) => {
 
 	if (!gameId) return res.status(400).json({ error: 'missing game id' });
 
-	const existing = await Game.find({
-		$or: [
-			{ status: 'waiting' },
-			{ status: 'ongoing' }
-		],
-		'players.id': userId
-	});
+	try {
+		const existing = await Game.find({
+			$or: [
+				{ status: 'waiting' },
+				{ status: 'ongoing' }
+			],
+			'players.id': userId
+		});
 
-	if (existing.length > 0) {
-		return res.status(403).json({ error: 'must leave current game to join another game' });
+		if (existing.length > 0) {
+			return res.status(403).json({ error: 'must leave current game to join another game' });
+		}
+
+		// join logic
+		const player = { id: userId, score: 0 };
+		await Game.updateOne({ _id: gameId }, { $push: { players: player } });
+
+		res.json(await getGames());
+		await announceLobbyUpdate();
+	} catch (e) {
+		console.error('unexpected error occured in joinGame', e);
+		res.status(500).send();
 	}
-
-	// join logic
-	const player = { id: userId, score: 0 };
-	await Game.updateOne({ _id: gameId }, { $push: { players: player } });
-
-	res.json(await getGames());
-	await announceLobbyUpdate();
 };
 
 export const leaveGame = async (req, res) => {
@@ -165,32 +170,37 @@ export const leaveGame = async (req, res) => {
 
 	if (!gameId) return res.status(400).json({ error: 'missing game id' });
 
-	const game = await Game.findById(gameId);
-	if (!game) return res.status(404).json({ error: `game with id ${gameId} not found` });
-	if (game.status == 'ended') return res.status(403).json({ error: `cannot leave ended game` });
+	try {
+		const game = await Game.findById(gameId);
+		if (!game) return res.status(404).json({ error: `game with id ${gameId} not found` });
+		if (game.status == 'ended') return res.status(403).json({ error: `cannot leave ended game` });
 
-	game.players.remove({ id: userId });
-	if (game.status == 'ongoing') {
-		const gi = gameManager.gameInstances.get(gameId);
-		if (gi) {
-			gi.players.delete(userId);
+		game.players.remove({ id: userId });
+		if (game.status == 'ongoing') {
+			const gi = gameManager.gameInstances.get(gameId);
+			if (gi) {
+				gi.players.delete(userId);
+			}
 		}
-	}
-	// assign a new random owner
-	let deleted = false;
-	if (game.owner == userId) {
-		const remainingPlayers = game.players.filter(p => p.id != userId);
-		if (remainingPlayers.length > 0) { game.owner = uniform(game.players.filter(p => p.id != userId)).id; }
-		else {
-			await game.deleteOne();
-			deleted = true;
+		// assign a new random owner
+		let deleted = false;
+		if (game.owner == userId) {
+			const remainingPlayers = game.players.filter(p => p.id != userId);
+			if (remainingPlayers.length > 0) { game.owner = uniform(game.players.filter(p => p.id != userId)).id; }
+			else {
+				await game.deleteOne();
+				deleted = true;
+			}
 		}
+
+		if (!deleted) await game.save();
+
+		res.json(await getGames());
+		await announceLobbyUpdate();
+	} catch (e) {
+		console.error('unexpected error occured in leaveGame', e);
+		res.status(500).send();
 	}
-
-	if (!deleted) await game.save();
-
-	res.json(await getGames());
-	await announceLobbyUpdate();
 
 };
 
@@ -200,18 +210,23 @@ export const startGame = async (req, res) => {
 
 	if (!gameId) return res.status(400).json({ error: 'missing game id' });
 
-	const game = await Game.findById(gameId);
-	if (!game) return res.status(404).json({ error: `game with id ${gameId} not found` });
-	if (game.status != 'waiting') return res.status(403).json({ error: `game is not startable` });
-	if (game.owner != userId) return res.status(403).json({ error: `must be owner to start a game` });
+	try {
+		const game = await Game.findById(gameId);
+		if (!game) return res.status(404).json({ error: `game with id ${gameId} not found` });
+		if (game.status != 'waiting') return res.status(403).json({ error: `game is not startable` });
+		if (game.owner != userId) return res.status(403).json({ error: `must be owner to start a game` });
 
-	// TODO: fix potential race condition
-	await gameManager.start(gameId, game.players.map(p => p.id));
-	game.status = 'ongoing';
-	await game.save();
-	await announceLobbyUpdate();
+		// TODO: fix potential race condition
+		await gameManager.start(gameId, game.players.map(p => p.id));
+		game.status = 'ongoing';
+		await game.save();
+		await announceLobbyUpdate();
 
-	res.json(await getGames());
+		res.json(await getGames());
+	} catch (e) {
+		console.error('unexpected error occured in startGame', e);
+		res.status(500).send();
+	}
 };
 
 // SSE
