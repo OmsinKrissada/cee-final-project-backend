@@ -8,7 +8,7 @@ export class GameInstance {
 	started_at = null;
 	ended_at = null;
 
-	total_time_ms = 1000 * 60 * 2;
+	total_time_ms = 1000 * 60 * 1.5;
 
 	constructor(id, players) {
 		this.id = id;
