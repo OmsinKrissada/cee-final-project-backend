@@ -8,7 +8,6 @@ export class GameInstance {
 	started_at = null;
 	ended_at = null;
 
-	// total_time_ms = 1000 * 20;
 	total_time_ms = 1000 * 60 * 2;
 
 	constructor(id, players) {
@@ -40,6 +39,7 @@ export class GameInstance {
 			const remainingMs = this.total_time_ms - (new Date() - this.started_at);
 			if (remainingMs < 0) return;
 			this.broadcast('time_remaining', { seconds: Math.round(remainingMs / 1000) });
+			this.broadcastScore();
 		}, 3000);
 	}
 
@@ -58,6 +58,10 @@ export class GameInstance {
 		}
 	}
 
+	broadcastScore() {
+		this.broadcast('score', this.getScoreMap());
+	}
+
 	getScoreMap() {
 		const scoreMap = Array.from(this.players.entries()).map(([k, v]) => ({ id: k, ...v }));
 		scoreMap.sort((a, b) => b.score - a.score);
@@ -69,7 +73,7 @@ export class GameInstance {
 		if (!player) console.error(`player with id ${playerId} supposed to be in game ${this.id}`);
 		player.score += word.length;
 
-		this.broadcast('score', this.getScoreMap());
+		this.broadcastScore();
 	}
 
 	async conclude() {
