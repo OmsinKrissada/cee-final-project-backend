@@ -18,7 +18,7 @@ import app from "./app.js";
 //   // });
 // });
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Backend Server ready at http://localhost:${PORT}`);
 });
